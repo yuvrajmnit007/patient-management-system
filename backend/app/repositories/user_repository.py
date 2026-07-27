@@ -22,3 +22,8 @@ class UserRepository:
         database.commit()
         database.refresh(user)
         return user
+
+
+    @staticmethod
+    def get_by_id(database:Session, user_id:int):
+        return database.query(User).filter(User.id == user_id).first()

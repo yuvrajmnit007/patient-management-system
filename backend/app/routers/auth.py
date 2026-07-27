@@ -4,6 +4,8 @@ from app.schemas.user import UserLogin
 from app.database.database import get_db
 from app.schemas.user import UserCreate, UserResponse, Token
 from app.services.user_services import UserService
+from app.dependencies.auth import get_current_user,require_admin
+from app.models.user import User
 
 router = APIRouter(
     prefix="/auth",
@@ -28,3 +30,13 @@ def login_user(user:UserLogin, db: Session = Depends(get_db)):
         return token
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/me")
+def get_current_user_info(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.get("/admin-only")
+def admin_route(current_user: User = Depends(require_admin)):
+    return {"message": "Welcome admin."}
