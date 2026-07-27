@@ -3,7 +3,7 @@ from app.schemas.user import UserLogin
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserCreate
-from app.core.security import hash_password,verify_password
+from app.core.security import hash_password,verify_password,create_access_token
 
 
 class UserService:
@@ -46,4 +46,5 @@ class UserService:
         if not verify_password(data.password, user.password):
             raise ValueError("Invalid email or password")
 
-        return user
+        access_token=create_access_token(data={"sub": user.email, "role": user.role})
+        return {"access_token": access_token, "token_type": "bearer"}
