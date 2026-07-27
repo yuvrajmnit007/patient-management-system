@@ -1,6 +1,4 @@
-#!/bin/sh
-'''exec' "/Users/yuvraj/Desktop/development/patient management system/backend/venv/bin/python3.12" "$0" "$@"
-' '''
+#!/Users/yuvraj/Desktop/development/patient_management_system/backend/venv/bin/python3.12
 import sys
 from faker.cli import execute_from_command_line
 if __name__ == '__main__':
