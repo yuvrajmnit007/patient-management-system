@@ -1,4 +1,12 @@
 from passlib.context import CryptContext
+from jose import jwt
+from datetime import datetime, timedelta
+
+SECRET_KEY =str
+ALGORITHM = str
+ACCESS_TOKEN_EXPIRE_MINUTES = int
+
+
 
 pwd_context = CryptContext(
     schemes=["bcrypt"],
@@ -12,3 +20,4 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
+
