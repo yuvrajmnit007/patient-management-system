@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
-from sqlalchemy.orm import Mapped,mapped_column
+from sqlalchemy.orm import Mapped,mapped_column, relationship
 from enum import Enum
 from app.models.base import Base
 
@@ -25,3 +25,4 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    patients_created = relationship("Patient", back_populates="creator", foreign_keys="[Patient.created_by]")

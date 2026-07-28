@@ -4,7 +4,7 @@ from app.models.base import Base
 from app.models.user import User
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
+from app.models.patient import Patient
 from alembic import context
 
 # this is the Alembic Config object, which provides
