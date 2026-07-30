@@ -61,3 +61,13 @@ class PatientService:
             setattr(patient, field, value)
 
         return PatientRepository.update_patient(database, patient)
+
+    @staticmethod
+    def get_all_patients(database: Session, page: int, limit: int, search: str | None = None):
+        patients, total = PatientRepository.get_all(database, page, limit, search)
+        return {
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "data": patients
+        }

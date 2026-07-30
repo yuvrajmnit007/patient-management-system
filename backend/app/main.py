@@ -13,3 +13,4 @@ app.include_router(patient_router)
 @app.get("/")
 async def home():
     return {"message": "backend is running"}
+

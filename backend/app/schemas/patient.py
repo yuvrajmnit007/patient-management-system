@@ -55,4 +55,9 @@ class PatientUpdate(BaseModel):
     medical_history:Optional[str]=None
 
 
-
+class PatientListResponse(BaseModel):
+    total:int
+    page:int
+    limit:int
+    data:list[PatientResponse]
+    model_config = ConfigDict(from_attributes=True)

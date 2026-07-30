@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from app.models.patient import Patient
 
 
@@ -15,8 +16,23 @@ class PatientRepository:
         return database.query(Patient).filter(Patient.patient_id == patient_id).first()
 
     @staticmethod
-    def get_all(database: Session):
-        return database.query(Patient).all()
+    def get_all(database: Session,page:int ,limit:int,search: str | None = None):
+        offset = (page - 1) * limit
+        query = database.query(Patient)
+        if search:
+            search_pattern = f"%{search}%"
+            query = query.filter(
+                or_(
+                    Patient.full_name.ilike(search_pattern),
+                    Patient.patient_id.ilike(search_pattern),
+                    Patient.phone_number.ilike(search_pattern)
+                )
+            )
+            total= query.count()
+            patients = query.offset(offset).limit(limit).all()
+            return patients, total
+        else:
+            return query.offset(offset).limit(limit).all(), query.count()
 
     @staticmethod
     def get_by_id(database: Session, id: int):
@@ -41,3 +57,4 @@ class PatientRepository:
         database.commit()
         database.refresh(patient)
         return patient
+

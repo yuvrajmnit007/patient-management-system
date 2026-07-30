@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.schemas.patient import PatientCreate, PatientResponse, PatientUpdate
+from app.schemas.patient import PatientCreate, PatientListResponse, PatientResponse, PatientUpdate
 from app.database.database import get_db
 from app.schemas.user import UserCreate, UserResponse, Token
 from app.services.patient_services import PatientService
@@ -30,3 +30,9 @@ def update_patient(patient_id: str, patient: PatientUpdate, db: Session = Depend
         return updated_patient
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/list", response_model=PatientListResponse)
+def get_all_patients(page: int = 1, limit: int = 10, search: str | None = None, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    patients_data = PatientService.get_all_patients(db, page, limit, search)
+    return patients_data
