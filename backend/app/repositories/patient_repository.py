@@ -12,9 +12,17 @@ class PatientRepository:
         return patient
 
     @staticmethod
-    def get_by_patient_id(database: Session, patient_id: str):
-        return database.query(Patient).filter(Patient.patient_id == patient_id).first()
+    def get_last_patient(database: Session):
+        return database.query(Patient).order_by(Patient.id.desc()).first()
 
+    @staticmethod
+    def get_by_email(database: Session, email: str):
+        return database.query(Patient).filter(Patient.email == email).first()
+
+    @staticmethod
+    def get_by_phone_number(database: Session, phone_number: str):
+        return database.query(Patient).filter(Patient.phone_number == phone_number).first()
+    
     @staticmethod
     def get_all(database: Session,page:int ,limit:int,search: str | None = None):
         offset = (page - 1) * limit

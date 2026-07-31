@@ -1,7 +1,10 @@
 from datetime import date ,datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict,field_validator
 from app.models.patient import Gender , BloodGroup
+
+
+
 
 class PatientCreate(BaseModel):
     full_name:str
@@ -15,8 +18,20 @@ class PatientCreate(BaseModel):
     emergency_contact_number:Optional[str]=None
     allergies:Optional[str]=None
     medical_history:Optional[str]=None
+    @field_validator("date_of_birth")
+    def validate_date_of_birth(cls, value):
+        if value > date.today():
+            raise ValueError("Date of birth cannot be in the future")
+        return value
 
 
+    @field_validator("phone_number")
+    def validate_phone_number(cls, value):
+        if value and not value.isdigit():
+            raise ValueError("Phone number must contain only digits")
+        if len(value) != 10 :
+            raise ValueError("Phone number must be of 10 digits")
+        return value
 
 class PatientResponse(BaseModel):
     id:int
@@ -54,6 +69,19 @@ class PatientUpdate(BaseModel):
     allergies:Optional[str]=None
     medical_history:Optional[str]=None
 
+    @field_validator("date_of_birth")
+    def validate_date_of_birth(cls, value):
+        if value > date.today():
+            raise ValueError("Date of birth cannot be in the future")
+        return value
+
+    @field_validator("phone_number")
+    def validate_phone_number(cls, value):
+        if value and not value.isdigit():
+            raise ValueError("Phone number must contain only digits")
+        if len(value) != 10 :
+            raise ValueError("Phone number must be of 10 digits")
+        return value
 
 class PatientListResponse(BaseModel):
     total:int
