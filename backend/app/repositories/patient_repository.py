@@ -56,3 +56,10 @@ class PatientRepository:
     @staticmethod
     def get_patient_by_id(database: Session, patient_id: str):
         return database.query(Patient).filter(Patient.patient_id == patient_id).first()
+
+    @staticmethod
+    def restore_patient(database: Session, patient: Patient):
+        patient.is_active = True
+        database.commit()
+        database.refresh(patient)
+        return patient

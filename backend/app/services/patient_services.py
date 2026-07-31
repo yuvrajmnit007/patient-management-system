@@ -103,4 +103,4 @@ class PatientService:
         if patient.is_active:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Patient is already active")
         patient.is_active = True
-        return PatientRepository.update_patient(database, patient)
+        return PatientRepository.restore_patient(database, patient)
