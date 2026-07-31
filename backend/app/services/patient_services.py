@@ -53,14 +53,21 @@ class PatientService:
     @staticmethod
     def update_patient(database: Session, patient_id: str, data: PatientUpdate):
         patient = PatientRepository.get_active_patient_by_id(database, patient_id)
-        print("Patient to update:", patient_id)
-        if not patient:
-            raise ValueError("Patient not found")
-
-        for field, value in data.dict(exclude_unset=True).items():
-            setattr(patient, field, value)
-
+        if patient is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
+        if data.email and data.email != patient.email:
+            existing_email = PatientRepository.get_by_email(database, data.email)
+            if existing_email and existing_email.id != id:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
+        if data.phone_number and data.phone_number != patient.phone_number:
+            existing_phone = PatientRepository.get_by_phone_number(database, data.phone_number)
+            if existing_phone and existing_phone.id != id:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Phone number already exists")
+        update_data = data.dict(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(patient, key, value)
         return PatientRepository.update_patient(database, patient)
+        
 
     @staticmethod
     def get_all_patients(database: Session, page: int, limit: int, search: str | None = None):
