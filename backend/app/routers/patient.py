@@ -36,3 +36,8 @@ def update_patient(patient_id: str, patient: PatientUpdate, db: Session = Depend
 def get_all_patients(page: int = 1, limit: int = 10, search: str | None = None, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     patients_data = PatientService.get_all_patients(db, page, limit, search)
     return patients_data
+
+
+@router.delete("/delete/{patient_id}", response_model=PatientResponse)
+def delete_patient(patient_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return PatientService.delete_patient(db, patient_id)

@@ -58,3 +58,10 @@ class PatientRepository:
         database.refresh(patient)
         return patient
 
+
+    @staticmethod
+    def delete_patient(database: Session, patient: Patient):
+        patient.is_active = False
+        database.commit()
+        database.refresh(patient)
+        return patient

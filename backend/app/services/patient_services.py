@@ -71,3 +71,12 @@ class PatientService:
             "limit": limit,
             "data": patients
         }
+
+    @staticmethod
+    def delete_patient(database: Session, patient_id: str):
+        patient = PatientRepository.get_by_patient_id(database, patient_id)
+        if patient is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
+        if not patient.is_active:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Patient is already deleted")
+        return PatientRepository.delete_patient(database, patient)
