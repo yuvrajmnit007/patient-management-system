@@ -52,7 +52,7 @@ class PatientService:
 
     @staticmethod
     def update_patient(database: Session, patient_id: str, data: PatientUpdate):
-        patient = PatientRepository.get_by_patient_id(database, patient_id)
+        patient = PatientRepository.get_active_patient_by_id(database, patient_id)
         print("Patient to update:", patient_id)
         if not patient:
             raise ValueError("Patient not found")
@@ -74,9 +74,33 @@ class PatientService:
 
     @staticmethod
     def delete_patient(database: Session, patient_id: str):
-        patient = PatientRepository.get_by_patient_id(database, patient_id)
+        patient = PatientRepository.get_active_patient_by_id(database, patient_id)
         if patient is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
         if not patient.is_active:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Patient is already deleted")
         return PatientRepository.delete_patient(database, patient)
+
+    @staticmethod
+    def get_active_patient_by_id(database: Session, patient_id: str):
+        patient = PatientRepository.get_active_patient_by_id(database, patient_id)
+        if patient is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
+        return patient
+
+    @staticmethod
+    def get_patient_by_id(database: Session, patient_id: str):
+        patient = PatientRepository.get_patient_by_id(database, patient_id)
+        if patient is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
+        return patient
+
+    @staticmethod
+    def restore_patient(database: Session, patient_id: str):
+        patient = PatientRepository.get_patient_by_id(database, patient_id)
+        if patient is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
+        if patient.is_active:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Patient is already active")
+        patient.is_active = True
+        return PatientRepository.update_patient(database, patient)

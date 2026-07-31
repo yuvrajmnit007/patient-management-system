@@ -34,23 +34,6 @@ class PatientRepository:
         else:
             return query.offset(offset).limit(limit).all(), query.count()
 
-    @staticmethod
-    def get_by_id(database: Session, id: int):
-        return database.query(Patient).filter(Patient.id == id).first()
-
-    @staticmethod
-    def get_by_email(database: Session, email: str):
-        return database.query(Patient).filter(Patient.email == email).first()
-
-
-    @staticmethod
-    def get_by_phone_number(database: Session, phone_number: str):
-        return database.query(Patient).filter(Patient.phone_number == phone_number).first()
-
-
-    @staticmethod
-    def get_last_patient(database: Session):
-        return database.query(Patient).order_by(Patient.id.desc()).first()
 
     @staticmethod
     def update_patient(database: Session, patient: Patient):
@@ -65,3 +48,11 @@ class PatientRepository:
         database.commit()
         database.refresh(patient)
         return patient
+
+    @staticmethod
+    def get_active_patient_by_id(database: Session, patient_id: str):
+        return database.query(Patient).filter(Patient.patient_id == patient_id, Patient.is_active == True).first()
+
+    @staticmethod
+    def get_patient_by_id(database: Session, patient_id: str):
+        return database.query(Patient).filter(Patient.patient_id == patient_id).first()

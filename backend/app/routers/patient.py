@@ -41,3 +41,14 @@ def get_all_patients(page: int = 1, limit: int = 10, search: str | None = None, 
 @router.delete("/delete/{patient_id}", response_model=PatientResponse)
 def delete_patient(patient_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return PatientService.delete_patient(db, patient_id)
+
+
+@router.get("/{patient_id}", response_model=PatientResponse)
+def get_active_patient_by_id(patient_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    patient = PatientService.get_active_patient_by_id(db, patient_id)
+    return PatientService.get_active_patient_by_id(db, patient_id)
+
+
+@router.patch("/restore/{patient_id}", response_model=PatientResponse)
+def restore_patient(patient_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return PatientService.restore_patient(db, patient_id)
