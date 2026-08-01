@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-
-from app.models.doctor import Doctor
+from app.models.doctor import Doctor, Department, Specialization
 from app.repositories.doctor_repository import DoctorRepository
 from app.schemas.doctor import DoctorCreate, DoctorUpdate
 
@@ -20,13 +19,18 @@ class DoctorService:
         return f"DOC{last_number + 1:08d}"
 
     @staticmethod
-    def create_doctor(database: Session, data: DoctorCreate, created_by: int):
+    def create_doctor(
+        database: Session,
+        data: DoctorCreate,
+        created_by: int
+    ):
 
-        if DoctorRepository.get_by_email(database, data.email):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already exists"
-            )
+        if data.email:
+            if DoctorRepository.get_by_email(database, data.email):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email already exists"
+                )
 
         if DoctorRepository.get_by_phone_number(database, data.phone_number):
             raise HTTPException(
@@ -41,8 +45,11 @@ class DoctorService:
             department=data.department,
             qualification=data.qualification,
             experience=data.experience,
+            consultation_fee=data.consultation_fee,
+            availability=data.availability,
             phone_number=data.phone_number,
             email=data.email,
+            address=data.address,
             is_active=True,
             created_by=created_by
         )
@@ -50,26 +57,58 @@ class DoctorService:
         return DoctorRepository.create_doctor(database, doctor)
 
     @staticmethod
-    def get_all_doctors(database, page, limit, search, department, specialization):
+    def get_all_doctors(
+        database: Session,
+        page: int,
+        limit: int,
+        search: str | None,
+        department: str | None,
+        specialization: str | None,
+    ):
+
+        if department:
+            try:
+                department = Department[
+                    department.strip().replace(" ", "_").upper()
+                ]
+            except KeyError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid department"
+                )
+
+        if specialization:
+            try:
+                specialization = Specialization[
+                    specialization.strip().replace(" ", "_").upper()
+                ]
+            except KeyError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid specialization"
+                )
 
         doctors, total = DoctorRepository.get_all_doctors(
-            database,
-            page,
-            limit,
-            search,
-            department,
-            specialization
+            database=database,
+            page=page,
+            limit=limit,
+            search=search,
+            department=department,
+            specialization=specialization
         )
 
         return {
             "page": page,
             "limit": limit,
             "total": total,
-            "data": doctors
+            "doctors": doctors
         }
 
     @staticmethod
-    def get_doctor_by_id(database: Session, doctor_id: str):
+    def get_doctor_by_id(
+        database: Session,
+        doctor_id: str
+    ):
 
         doctor = DoctorRepository.get_doctor_by_id(
             database,
@@ -78,7 +117,7 @@ class DoctorService:
 
         if not doctor:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Doctor not found"
             )
 
@@ -98,7 +137,7 @@ class DoctorService:
 
         if not doctor:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Doctor not found"
             )
 
@@ -106,13 +145,9 @@ class DoctorService:
             data.email
             and data.email != doctor.email
         ):
-
-            if DoctorRepository.get_by_email(
-                database,
-                data.email
-            ):
+            if DoctorRepository.get_by_email(database, data.email):
                 raise HTTPException(
-                    status_code=400,
+                    status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Email already exists"
                 )
 
@@ -120,17 +155,16 @@ class DoctorService:
             data.phone_number
             and data.phone_number != doctor.phone_number
         ):
-
             if DoctorRepository.get_by_phone_number(
                 database,
                 data.phone_number
             ):
                 raise HTTPException(
-                    status_code=400,
+                    status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Phone number already exists"
                 )
 
-        update_data = data.dict(exclude_unset=True)
+        update_data = data.model_dump(exclude_unset=True)
 
         for key, value in update_data.items():
             setattr(doctor, key, value)
@@ -141,7 +175,10 @@ class DoctorService:
         )
 
     @staticmethod
-    def delete_doctor(database: Session, doctor_id: str):
+    def delete_doctor(
+        database: Session,
+        doctor_id: str
+    ):
 
         doctor = DoctorRepository.get_doctor_by_id(
             database,
@@ -150,7 +187,7 @@ class DoctorService:
 
         if not doctor:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Doctor not found"
             )
 
@@ -160,7 +197,10 @@ class DoctorService:
         )
 
     @staticmethod
-    def restore_doctor(database: Session, doctor_id: str):
+    def restore_doctor(
+        database: Session,
+        doctor_id: str
+    ):
 
         doctor = DoctorRepository.get_any_doctor(
             database,
@@ -169,13 +209,13 @@ class DoctorService:
 
         if not doctor:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Doctor not found"
             )
 
         if doctor.is_active:
             raise HTTPException(
-                status_code=400,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Doctor is already active"
             )
 

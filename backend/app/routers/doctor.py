@@ -8,15 +8,16 @@ from app.dependencies.auth import get_current_user
 from app.models.doctor import Department, Specialization
 from app.schemas.doctor import (
     DoctorCreate,
-    DoctorResponse,
     DoctorUpdate,
+    DoctorResponse,
     DoctorListResponse,
 )
 from app.services.doctor_services import DoctorService
 
+
 router = APIRouter(
     prefix="/doctors",
-    tags=["Doctors"]
+    tags=["Doctors"],
 )
 
 
@@ -27,8 +28,8 @@ def create_doctor(
     current_user=Depends(get_current_user),
 ):
     return DoctorService.create_doctor(
-        db,
-        doctor,
+        database=db,
+        data=doctor,
         created_by=current_user.id,
     )
 
@@ -38,30 +39,30 @@ def get_all_doctors(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=100),
     search: Optional[str] = None,
-    department: Optional[Department] = None,
-    specialization: Optional[Specialization] = None,
+    department: Optional[str] = Query(None),
+    specialization: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     return DoctorService.get_all_doctors(
-        db,
-        page,
-        limit,
-        search,
-        department,
-        specialization,
+        database=db,
+        page=page,
+        limit=limit,
+        search=search,
+        department=department,
+        specialization=specialization,
     )
 
 
 @router.get("/{doctor_id}", response_model=DoctorResponse)
-def get_active_doctor_by_id(
+def get_doctor_by_id(
     doctor_id: str,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    return DoctorService.get_active_doctor_by_id(
-        db,
-        doctor_id,
+    return DoctorService.get_doctor_by_id(
+        database=db,
+        doctor_id=doctor_id,
     )
 
 
@@ -73,9 +74,9 @@ def update_doctor(
     current_user=Depends(get_current_user),
 ):
     return DoctorService.update_doctor(
-        db,
-        doctor_id,
-        doctor,
+        database=db,
+        doctor_id=doctor_id,
+        data=doctor,
     )
 
 
@@ -86,8 +87,8 @@ def delete_doctor(
     current_user=Depends(get_current_user),
 ):
     return DoctorService.delete_doctor(
-        db,
-        doctor_id,
+        database=db,
+        doctor_id=doctor_id,
     )
 
 
@@ -98,6 +99,6 @@ def restore_doctor(
     current_user=Depends(get_current_user),
 ):
     return DoctorService.restore_doctor(
-        db,
-        doctor_id,
+        database=db,
+        doctor_id=doctor_id,
     )

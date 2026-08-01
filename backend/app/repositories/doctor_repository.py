@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, cast, String
-from app.models.doctor import Department, Doctor, Specialization
+
+from app.models.doctor import Doctor, Department, Specialization
 
 
 class DoctorRepository:
@@ -69,7 +70,6 @@ class DoctorRepository:
             .first()
         )
 
-
     @staticmethod
     def get_all_doctors(
         database: Session,
@@ -77,27 +77,28 @@ class DoctorRepository:
         limit: int,
         search: str | None = None,
         department: Department | None = None,
-        specialization: Specialization | None = None
+        specialization: Specialization | None = None,
     ):
 
-        query = database.query(Doctor).filter(
-            Doctor.is_active == True
+        query = (
+            database.query(Doctor)
+            .filter(Doctor.is_active == True)
         )
 
-        # Global Search
         if search:
             query = query.filter(
                 or_(
                     Doctor.doctor_id.ilike(f"%{search}%"),
                     Doctor.full_name.ilike(f"%{search}%"),
-                    Doctor.email.ilike(f"%{search}%"),
                     Doctor.phone_number.ilike(f"%{search}%"),
+                    Doctor.email.ilike(f"%{search}%"),
+                    Doctor.qualification.ilike(f"%{search}%"),
+                    Doctor.availability.ilike(f"%{search}%"),
                     cast(Doctor.department, String).ilike(f"%{search}%"),
-                    cast(Doctor.specialization, String).ilike(f"%{search}%")
+                    cast(Doctor.specialization, String).ilike(f"%{search}%"),
                 )
             )
 
-        # Exact Filters
         if department:
             query = query.filter(
                 Doctor.department == department
@@ -112,12 +113,14 @@ class DoctorRepository:
 
         doctors = (
             query
+            .order_by(Doctor.id)
             .offset((page - 1) * limit)
             .limit(limit)
             .all()
         )
 
         return doctors, total
+
     @staticmethod
     def delete_doctor(database: Session, doctor: Doctor):
         doctor.is_active = False
