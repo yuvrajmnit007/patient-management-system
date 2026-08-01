@@ -6,6 +6,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from app.models.patient import Patient
 from app.models.doctor import Doctor
+from app.models.appointment import Appointment
 from alembic import context
 
 # this is the Alembic Config object, which provides
