@@ -1,9 +1,10 @@
 from enum import Enum
-from sqlalchemy import Column, Integer, String, Date, Text, Boolean, DateTime , Enum as SqlEnum,func, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, Float, Boolean, ForeignKey, DateTime, func, Enum as SqlEnum
+from sqlalchemy.orm import relationship
 from app.models.base import Base
 
 
-class Specilazation(str, Enum):
+class Specialization(str, Enum):
     CARDIOLOGY = "Cardiology"
     DERMATOLOGY = "Dermatology"
     NEUROLOGY = "Neurology"
@@ -16,7 +17,6 @@ class Specilazation(str, Enum):
     UROLOGY = "Urology"
     GASTROENTEROLOGY = "Gastroenterology"
     GENERAL_PHYSICIAN = "General Physician"
-
 
 
 class Department(str, Enum):
@@ -32,14 +32,49 @@ class Department(str, Enum):
 
 class Doctor(Base):
     __tablename__ = "doctors"
+
     id = Column(Integer, primary_key=True, index=True)
+
     doctor_id = Column(String(20), unique=True, nullable=False, index=True)
+
     full_name = Column(String(100), nullable=False)
-    specialization = Column(SqlEnum(Specilazation), nullable=False)
+
+    specialization = Column(SqlEnum(Specialization), nullable=False)
+
     department = Column(SqlEnum(Department), nullable=False)
+
+    qualification = Column(String(150), nullable=False)
+
+    experience = Column(Integer, nullable=False)
+
+    consultation_fee = Column(Float, nullable=False)
+
+    availability = Column(Text, nullable=True)
+
     phone_number = Column(String(15), unique=True, nullable=False)
-    email = Column(String(100), unique=True, nullable=True)
-    address = Column(Text, nullable=True)
+
+    email = Column(String(100), unique=True)
+
+    address = Column(Text)
+
     is_active = Column(Boolean, default=True)
+
     created_at = Column(DateTime, nullable=False, default=func.now())
-    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        default=func.now(),
+        onupdate=func.now(),
+    )
+
+    created_by = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=True,
+    )
+
+    created_by_user = relationship(
+        "User",
+        foreign_keys=[created_by],
+    )
