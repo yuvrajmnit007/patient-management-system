@@ -13,7 +13,7 @@ from app.schemas.prescription import (
     PrescriptionListResponse,
 )
 
-from app.services.prescription_service import PrescriptionService
+from app.services.prescription_services import PrescriptionService
 
 
 router = APIRouter(

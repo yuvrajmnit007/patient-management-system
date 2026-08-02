@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, cast, String
 
-from app.models.doctor import Doctor, Department, Specialization
+from app.models.doctor import Doctor, Department, DoctorStatus, Specialization
 
 
 class DoctorRepository:
@@ -134,3 +134,25 @@ class DoctorRepository:
         database.commit()
         database.refresh(doctor)
         return doctor
+
+    @staticmethod
+    def get_by_user_id(database: Session, user_id: int):
+        return (
+            database.query(Doctor)
+            .filter(
+                Doctor.user_id == user_id,
+                Doctor.is_active == True
+            )
+            .first()
+        )
+
+    @staticmethod
+    def get_pending_doctors(database: Session):
+        return (
+            database.query(Doctor)
+            .filter(
+                Doctor.status == DoctorStatus.PENDING
+            )
+            .all()
+        )
+    

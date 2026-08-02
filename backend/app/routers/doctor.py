@@ -1,13 +1,14 @@
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-from app.dependencies.auth import get_current_user
+from app.dependencies.auth import get_current_user, require_admin
 from app.models.doctor import Department, Specialization
 from app.schemas.doctor import (
     DoctorCreate,
+    DoctorRegister,
     DoctorUpdate,
     DoctorResponse,
     DoctorListResponse,
@@ -52,8 +53,34 @@ def get_all_doctors(
         department=department,
         specialization=specialization,
     )
-
-
+@router.get("/pending", response_model=List[DoctorResponse])
+def get_pending_doctors(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    return DoctorService.get_pending_doctors(
+        database=db,
+    )
+@router.patch("/approve/{doctor_id}", response_model=DoctorResponse)
+def approve_doctor(
+    doctor_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    return DoctorService.approve_doctor(
+        database=db,
+        doctor_id=doctor_id,
+    )
+@router.patch("/reject/{doctor_id}", response_model=DoctorResponse)
+def reject_doctor(
+    doctor_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_admin),
+):
+    return DoctorService.reject_doctor(
+        database=db,
+        doctor_id=doctor_id,
+    )
 @router.get("/{doctor_id}", response_model=DoctorResponse)
 def get_doctor_by_id(
     doctor_id: str,
@@ -102,3 +129,14 @@ def restore_doctor(
         database=db,
         doctor_id=doctor_id,
     )
+
+@router.post("/register", response_model=DoctorResponse)
+def register_doctor(
+    doctor: DoctorRegister,
+    db: Session = Depends(get_db),
+):
+    return DoctorService.register_doctor(
+        database=db,
+        doctor=doctor,
+    )
+

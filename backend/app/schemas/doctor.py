@@ -9,7 +9,7 @@ from pydantic import (
     field_validator,
 )
 
-from app.models.doctor import Department, Specialization
+from app.models.doctor import Department, DoctorStatus, Specialization
 
 
 class DoctorBase(BaseModel):
@@ -64,6 +64,23 @@ class DoctorBase(BaseModel):
             f"Invalid department. Allowed values: {[i.name for i in Department]}"
         )
 
+class DoctorRegister(DoctorBase):
+    password: str = Field(..., min_length=8, example="securepassword123")
+    full_name: str = Field(..., example="Dr. John Doe")
+    department: Department = Field(..., example=Department.MEDICINE)
+    specialization: Specialization = Field(..., example=Specialization.CARDIOLOGY)
+    qualification: str = Field(..., example="MBBS, MD")
+    experience: int = Field(..., ge=0, example=8)
+    consultation_fee: float = Field(..., ge=0, example=700)
+    availability: Optional[str] = Field(None, example="Mon-Sat 10:00 AM - 5:00 PM")
+    phone_number: str = Field(..., min_length=10, max_length=15, example="+919876543210")
+    email: Optional[EmailStr] = Field(None, example="doctor@gmail.com")
+    address: Optional[str] = Field(None, example="Jaipur")
+
+
+
+
+
 
 class DoctorCreate(DoctorBase):
     full_name: str = Field(..., example="Dr. John Doe")
@@ -110,6 +127,7 @@ class DoctorResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     created_by: Optional[int]
+    status: DoctorStatus
 
 
 class DoctorListResponse(BaseModel):

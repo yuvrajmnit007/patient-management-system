@@ -29,7 +29,12 @@ class Department(str, Enum):
     RADIOLOGY = "Radiology"
     ORTHOPEDICS = "Orthopedics"
 
+class DoctorStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
 
+    
 class Doctor(Base):
     __tablename__ = "doctors"
 
@@ -68,6 +73,8 @@ class Doctor(Base):
         onupdate=func.now(),
     )
 
+    status = Column(SqlEnum(DoctorStatus), default=DoctorStatus.PENDING)
+
     created_by = Column(
         Integer,
         ForeignKey("users.id"),
@@ -78,3 +85,6 @@ class Doctor(Base):
         "User",
         foreign_keys=[created_by],
     )
+
+    user_id=Column(Integer, ForeignKey("users.id"), nullable=True,unique=True)
+    user=relationship("User", foreign_keys=[user_id], backref="doctor_user")
