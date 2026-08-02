@@ -7,6 +7,8 @@ from sqlalchemy import pool
 from app.models.patient import Patient
 from app.models.doctor import Doctor
 from app.models.appointment import Appointment
+from app.models.prescription import Prescription
+from app.models.prescription_item import PrescriptionItem
 from alembic import context
 
 # this is the Alembic Config object, which provides
