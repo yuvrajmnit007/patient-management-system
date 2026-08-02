@@ -36,7 +36,6 @@ class PrescriptionItemResponse(BaseModel):
     instructions: Optional[str]
 
 
-# ---------------- Prescription ---------------- #
 
 class PrescriptionBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
