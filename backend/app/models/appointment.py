@@ -7,6 +7,7 @@ from app.models.base import Base
 class AppointmentStatus(str, Enum):
     PENDING = "Pending"
     CONFIRMED = "Confirmed"
+    IN_PROGRESS = "In Progress"
     COMPLETED = "Completed"
     CANCELLED = "Cancelled"
     NO_SHOW = "No Show"
