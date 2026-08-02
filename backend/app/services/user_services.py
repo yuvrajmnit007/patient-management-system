@@ -1,3 +1,5 @@
+from http.client import HTTPException
+
 from sqlalchemy.orm import Session
 from app.schemas.user import UserLogin
 from app.models.user import User
@@ -46,5 +48,10 @@ class UserService:
         if not verify_password(data.password, user.password):
             raise ValueError("Invalid email or password")
 
+        if not user.is_active:
+            raise HTTPException(
+                status_code=403,
+                detail="User account is inactive"
+            )
         access_token=create_access_token(data={"sub": user.email, "role": user.role})
         return {"access_token": access_token, "token_type": "bearer"}
