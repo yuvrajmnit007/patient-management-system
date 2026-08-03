@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+from app.models.appointment import AppointmentStatus
 from app.models.prescription import Prescription
 from app.models.prescription_item import PrescriptionItem
 from app.repositories.prescription_repository import PrescriptionRepository
@@ -59,9 +60,9 @@ class PrescriptionService:
         if appointment.status == AppointmentStatus.NO_SHOW:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot create prescription for a no-show appointment")
 
-        if appointment.status != AppointmentStatus.COMPLETED:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot create prescription for a non-completed appointment")
-
+        if appointment.status != AppointmentStatus.CONFIRMED:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot create prescription for an appointment that is not confirmed")
+        
         existing = PrescriptionRepository.get_prescription_by_appointment_id(database, data.appointment_id)
         if existing:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Prescription for this appointment already exists")
@@ -90,6 +91,9 @@ class PrescriptionService:
             )
             PrescriptionItemRepository.create_prescription_item(database, item)
 
+        appointment.status = AppointmentStatus.COMPLETED
+        database.commit()
+        database.refresh(appointment)
         return PrescriptionService.serialize_prescription(created_prescription)
 
 

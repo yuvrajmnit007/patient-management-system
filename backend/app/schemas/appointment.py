@@ -20,7 +20,7 @@ class AppointmentBase(BaseModel):
 
 
 class AppointmentCreate(AppointmentBase):
-    patient_id: str = Field(..., example="PAT00000001")
+    patient_id: str = Field(..., example="HM00000001")
     doctor_id: str = Field(..., example="DOC00000001")
     appointment_date: date = Field(..., example="2026-08-05")
     appointment_time: time = Field(..., example="10:30:00")

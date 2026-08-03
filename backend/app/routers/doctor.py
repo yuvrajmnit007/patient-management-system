@@ -70,6 +70,7 @@ def approve_doctor(
     return DoctorService.approve_doctor(
         database=db,
         doctor_id=doctor_id,
+        current_user_id=current_user.id,
     )
 @router.patch("/reject/{doctor_id}", response_model=DoctorResponse)
 def reject_doctor(

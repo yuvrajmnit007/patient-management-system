@@ -47,11 +47,9 @@ class UserService:
 
         if not verify_password(data.password, user.password):
             raise ValueError("Invalid email or password")
-
+        print(user.is_active)
+        print(user.email)
         if not user.is_active:
-            raise HTTPException(
-                status_code=403,
-                detail="User account is inactive"
-            )
+            raise ValueError("Your account is inactive. Please contact the administrator.")
         access_token=create_access_token(data={"sub": user.email, "role": user.role})
         return {"access_token": access_token, "token_type": "bearer"}

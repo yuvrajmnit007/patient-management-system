@@ -62,7 +62,7 @@ class Doctor(Base):
 
     address = Column(Text)
 
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=False)
 
     created_at = Column(DateTime, nullable=False, default=func.now())
 

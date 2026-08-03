@@ -1,3 +1,4 @@
+from app.models.appointment import Appointment
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, cast, String
 
@@ -155,4 +156,5 @@ class DoctorRepository:
             )
             .all()
         )
+
     

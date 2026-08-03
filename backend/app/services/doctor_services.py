@@ -32,6 +32,7 @@ class DoctorService:
             phone_number=doctor.phone_number,
             password=hash_password(doctor.password),
             role=UserRole.DOCTOR,
+            is_active=False
         )
         user=UserRepository.create(database, user)
         new_doctor = Doctor(
@@ -108,7 +109,7 @@ class DoctorService:
             phone_number=data.phone_number,
             email=data.email,
             address=data.address,
-            is_active=True,
+            is_active=False,
             created_by=created_by
         )
 

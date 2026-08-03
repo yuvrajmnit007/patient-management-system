@@ -107,3 +107,15 @@ def restore_appointment(
         database=db,
         appointment_id=appointment_id,
     )
+
+@router.patch("/confirm/{appointment_id}", response_model=AppointmentResponse)
+def confirm_appointment(
+    appointment_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    return AppointmentService.confirm_appointment(
+        database=db,
+        appointment_id=appointment_id,
+        current_user_id=current_user.id,
+    )

@@ -345,3 +345,52 @@ class AppointmentService:
         return AppointmentService.serialize_appointment(
             appointment
         )
+
+    @staticmethod
+    def confirm_appointment(
+        database: Session,
+        appointment_id: str,
+        current_user_id: int
+    ):
+        doctor = DoctorRepository.get_by_user_id(database, current_user_id)
+        if not doctor:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Doctor not found",
+            )
+
+        appointment = AppointmentRepository.get_appointment_by_id(database,appointment_id,)
+        if not appointment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Appointment not found",
+            )
+
+        if appointment.doctor_id != doctor.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not authorized to confirm this appointment",
+            )
+
+        if appointment.status == AppointmentStatus.CONFIRMED:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Appointment is already confirmed",
+            )
+
+        if appointment.status == AppointmentStatus.COMPLETED:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot confirm a completed appointment",
+            )
+
+        if appointment.status == AppointmentStatus.CANCELLED:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot confirm a cancelled appointment",
+            )
+
+        appointment.status = AppointmentStatus.CONFIRMED
+        database.commit()
+        database.refresh(appointment)
+        return AppointmentService.serialize_appointment(appointment)
