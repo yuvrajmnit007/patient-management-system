@@ -14,6 +14,8 @@ import {
   Stethoscope,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { UserRole } from '@/types/auth';
+
 
 interface NavItem {
   label: string;
@@ -22,73 +24,26 @@ interface NavItem {
   roles: ('ADMIN' | 'DOCTOR')[];
 }
 
+interface NavItem {
+  label: string;
+  path: string;
+  icon: React.ReactNode;
+  roles: UserRole[];
+}
+
 const navItems: NavItem[] = [
-  {
-    label: 'Dashboard',
-    path: '/admin/dashboard',
-    icon: <LayoutDashboard size={20} />,
-    roles: ['ADMIN'],
-  },
-  {
-    label: 'Doctors',
-    path: '/admin/doctors',
-    icon: <Stethoscope size={20} />,
-    roles: ['ADMIN'],
-  },
-  {
-    label: 'Pending Doctors',
-    path: '/admin/pending-doctors',
-    icon: <UserCheck size={20} />,
-    roles: ['ADMIN'],
-  },
-  {
-    label: 'Patients',
-    path: '/admin/patients',
-    icon: <Users size={20} />,
-    roles: ['ADMIN'],
-  },
-  {
-    label: 'Appointments',
-    path: '/admin/appointments',
-    icon: <CalendarDays size={20} />,
-    roles: ['ADMIN'],
-  },
-  {
-    label: 'Prescriptions',
-    path: '/admin/prescriptions',
-    icon: <FileText size={20} />,
-    roles: ['ADMIN'],
-  },
-  {
-    label: 'Profile',
-    path: '/admin/profile',
-    icon: <UserCircle size={20} />,
-    roles: ['ADMIN'],
-  },
-  {
-    label: 'Dashboard',
-    path: '/doctor/dashboard',
-    icon: <LayoutDashboard size={20} />,
-    roles: ['DOCTOR'],
-  },
-  {
-    label: 'My Appointments',
-    path: '/doctor/appointments',
-    icon: <CalendarDays size={20} />,
-    roles: ['DOCTOR'],
-  },
-  {
-    label: 'My Prescriptions',
-    path: '/doctor/prescriptions',
-    icon: <FileText size={20} />,
-    roles: ['DOCTOR'],
-  },
-  {
-    label: 'Profile',
-    path: '/doctor/profile',
-    icon: <UserCircle size={20} />,
-    roles: ['DOCTOR'],
-  },
+  { label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} />, roles: ['admin'] },
+  { label: 'Doctors', path: '/admin/doctors', icon: <Stethoscope size={20} />, roles: ['admin'] },
+  { label: 'Pending Doctors', path: '/admin/pending-doctors', icon: <UserCheck size={20} />, roles: ['admin'] },
+  { label: 'Patients', path: '/admin/patients', icon: <Users size={20} />, roles: ['admin'] },
+  { label: 'Appointments', path: '/admin/appointments', icon: <CalendarDays size={20} />, roles: ['admin'] },
+  { label: 'Prescriptions', path: '/admin/prescriptions', icon: <FileText size={20} />, roles: ['admin'] },
+  { label: 'Profile', path: '/admin/profile', icon: <UserCircle size={20} />, roles: ['admin'] },
+
+  { label: 'Dashboard', path: '/doctor/dashboard', icon: <LayoutDashboard size={20} />, roles: ['doctor'] },
+  { label: 'My Appointments', path: '/doctor/appointments', icon: <CalendarDays size={20} />, roles: ['doctor'] },
+  { label: 'My Prescriptions', path: '/doctor/prescriptions', icon: <FileText size={20} />, roles: ['doctor'] },
+  { label: 'Profile', path: '/doctor/profile', icon: <UserCircle size={20} />, roles: ['doctor'] },
 ];
 
 export const Sidebar: React.FC = () => {
