@@ -1,54 +1,72 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from app.schemas.patient import PatientCreate, PatientListResponse, PatientResponse, PatientUpdate
+
 from app.database.database import get_db
-from app.schemas.user import UserCreate, UserResponse, Token
-from app.services.patient_services import PatientService
-from app.dependencies.auth import get_current_user
+from app.dependencies.auth import get_current_user, require_admin
 from app.models.user import User
-
-router = APIRouter(
-    prefix="/patients",
-    tags=["Patients"]
-)
+from app.schemas.common import PaginatedResponse
+from app.schemas.patient import PatientCreate, PatientResponse, PatientUpdate
+from app.services.patient_services import PatientService
 
 
-@router.post("/create", response_model=PatientResponse)
-def create_patient(patient: PatientCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+router = APIRouter(prefix="/patients", tags=["Patients"])
+
+
+@router.post("", response_model=PatientResponse, status_code=201)
+def create_patient(
+    patient: PatientCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     try:
-        new_patient = PatientService.create_patient(db, patient, created_by=current_user.id)
-        return new_patient
+        return PatientService.create_patient(db, patient, created_by=current_user.id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-
-@router.put("/update/{patient_id}", response_model=PatientResponse)
-def update_patient(patient_id: str, patient: PatientUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    try:
-        updated_patient = PatientService.update_patient(db, patient_id, patient)
-        return updated_patient
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.get("/list", response_model=PatientListResponse)
-def get_all_patients(page: int = 1, limit: int = 10, search: str | None = None, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    patients_data = PatientService.get_all_patients(db, page, limit, search)
-    return patients_data
-
-
-@router.delete("/delete/{patient_id}", response_model=PatientResponse)
-def delete_patient(patient_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return PatientService.delete_patient(db, patient_id)
+@router.get("", response_model=PaginatedResponse[PatientResponse])
+def list_patients(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
+    search: str | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return PatientService.get_all_patients(db, page, limit, search)
 
 
 @router.get("/{patient_id}", response_model=PatientResponse)
-def get_active_patient_by_id(patient_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    patient = PatientService.get_active_patient_by_id(db, patient_id)
+def get_patient(
+    patient_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     return PatientService.get_active_patient_by_id(db, patient_id)
 
 
-@router.patch("/restore/{patient_id}", response_model=PatientResponse)
-def restore_patient(patient_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+@router.put("/{patient_id}", response_model=PatientResponse)
+def update_patient(
+    patient_id: str,
+    patient: PatientUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return PatientService.update_patient(db, patient_id, patient)
+
+
+@router.delete("/{patient_id}", response_model=PatientResponse)
+def delete_patient(
+    patient_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    return PatientService.delete_patient(db, patient_id)
+
+
+@router.patch("/{patient_id}/restore", response_model=PatientResponse)
+def restore_patient(
+    patient_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
     return PatientService.restore_patient(db, patient_id)
