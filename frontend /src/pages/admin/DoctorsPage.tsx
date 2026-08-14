@@ -43,41 +43,35 @@ export const DoctorsPage: React.FC = () => {
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 
-  const columns = [
-    { key: 'id', header: 'ID' },
-    { key: 'full_name', header: 'Name' },
-    { key: 'email', header: 'Email' },
-    { key: 'department', header: 'Department' },
-    { key: 'specialization', header: 'Specialization' },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (item: Doctor) => <StatusBadge status={item.status} />,
-    },
-    {
-      key: 'actions',
-      header: 'Actions',
-      render: (item: Doctor) => (
-        <div className="flex items-center gap-2">
-          <button className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors" title="View">
-            <Eye size={16} />
-          </button>
-          <button className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
-            <Pencil size={16} />
-          </button>
-          {item.is_active ? (
-            <button onClick={() => setDeleteId(item.id)} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
-              <Trash2 size={16} />
-            </button>
-          ) : (
-            <button onClick={() => setRestoreId(item.id)} className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Restore">
-              <RotateCcw size={16} />
-            </button>
-          )}
-        </div>
-      ),
-    },
-  ];
+const [deleteId, setDeleteId] = useState<string | null>(null);
+const [restoreId, setRestoreId] = useState<string | null>(null);
+
+const columns = [
+  { key: 'doctor_id', header: 'ID' },
+  { key: 'full_name', header: 'Name' },
+  { key: 'email', header: 'Email' },
+  { key: 'department', header: 'Department' },
+  { key: 'specialization', header: 'Specialization' },
+  { key: 'status', header: 'Status', render: (item: Doctor) => <StatusBadge status={item.status} /> },
+  {
+    key: 'actions',
+    header: 'Actions',
+    render: (item: Doctor) => (
+      <div className="flex items-center gap-2">
+        <button className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors" title="View"><Eye size={16} /></button>
+        <button className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit"><Pencil size={16} /></button>
+        {item.is_active ? (
+          <button onClick={() => setDeleteId(item.doctor_id)} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete"><Trash2 size={16} /></button>
+        ) : (
+          <button onClick={() => setRestoreId(item.doctor_id)} className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Restore"><RotateCcw size={16} /></button>
+        )}
+      </div>
+    ),
+  },
+];
+
+// keyExtractor:
+keyExtractor={(item) => item.doctor_id}
 
   return (
     <div>
@@ -89,7 +83,7 @@ export const DoctorsPage: React.FC = () => {
       <DataTable columns={columns} data={data?.items ?? []} isLoading={isLoading} isError={isError} onRetry={refetch}
         searchPlaceholder="Search doctors..." onSearch={setSearch}
         pagination={{ page, limit, total: data?.total ?? 0, onPageChange: setPage }}
-        keyExtractor={(item) => item.id} />
+        keyExtractor={(item) => item.doctor_id} />
       <ConfirmDialog isOpen={!!deleteId} title="Delete Doctor" message="Are you sure you want to delete this doctor? This action can be reversed later."
         confirmText="Delete" confirmVariant="danger"
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
