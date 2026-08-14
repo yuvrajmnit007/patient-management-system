@@ -1,6 +1,11 @@
 from enum import Enum
-from sqlalchemy import Column, Integer, String, Text, Float, Boolean, ForeignKey, DateTime, func, Enum as SqlEnum
+
+from sqlalchemy import (
+    Column, Integer, String, Text, Float, Boolean,
+    ForeignKey, DateTime, func, Enum as SqlEnum,
+)
 from sqlalchemy.orm import relationship
+
 from app.models.base import Base
 
 
@@ -29,62 +34,58 @@ class Department(str, Enum):
     RADIOLOGY = "Radiology"
     ORTHOPEDICS = "Orthopedics"
 
+
 class DoctorStatus(str, Enum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
 
-    
+
+def _values(obj):
+    return [e.value for e in obj]
+
+
 class Doctor(Base):
     __tablename__ = "doctors"
 
     id = Column(Integer, primary_key=True, index=True)
-
     doctor_id = Column(String(20), unique=True, nullable=False, index=True)
-
     full_name = Column(String(100), nullable=False)
 
-    specialization = Column(SqlEnum(Specialization), nullable=False)
-
-    department = Column(SqlEnum(Department), nullable=False)
+    specialization = Column(
+        SqlEnum(Specialization, name="doctor_specialization", values_callable=_values),
+        nullable=False,
+    )
+    department = Column(
+        SqlEnum(Department, name="doctor_department", values_callable=_values),
+        nullable=False,
+    )
 
     qualification = Column(String(150), nullable=False)
-
     experience = Column(Integer, nullable=False)
-
     consultation_fee = Column(Float, nullable=False)
-
     availability = Column(Text, nullable=True)
 
     phone_number = Column(String(15), unique=True, nullable=False)
+    email = Column(String(100), unique=True, nullable=True)
+    address = Column(Text, nullable=True)
 
-    email = Column(String(100), unique=True)
+    is_active = Column(Boolean, default=False, nullable=False)
 
-    address = Column(Text)
-
-    is_active = Column(Boolean, default=False)
-
-    created_at = Column(DateTime, nullable=False, default=func.now())
-
-    updated_at = Column(
-        DateTime,
+    status = Column(
+        SqlEnum(DoctorStatus, name="doctor_status", values_callable=_values),
+        default=DoctorStatus.PENDING,
         nullable=False,
-        default=func.now(),
-        onupdate=func.now(),
     )
 
-    status = Column(SqlEnum(DoctorStatus), default=DoctorStatus.PENDING)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_by_user = relationship("User", foreign_keys=[created_by])
 
-    created_by = Column(
-        Integer,
-        ForeignKey("users.id"),
-        nullable=True,
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, unique=True)
+    user = relationship("User", foreign_keys=[user_id], backref="doctor_profile")
+
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(
+        DateTime, nullable=False,
+        server_default=func.now(), onupdate=func.now(),
     )
-
-    created_by_user = relationship(
-        "User",
-        foreign_keys=[created_by],
-    )
-
-    user_id=Column(Integer, ForeignKey("users.id"), nullable=True,unique=True)
-    user=relationship("User", foreign_keys=[user_id], backref="doctor_user")
