@@ -5,138 +5,94 @@ from sqlalchemy.orm import Session
 
 from app.database.database import get_db
 from app.dependencies.auth import get_current_user, require_admin
-from app.models.doctor import Department, Specialization
-from app.schemas.doctor import (
-    DoctorRegister,
-    DoctorUpdate,
-    DoctorResponse,
-    DoctorListResponse,
-)
+from app.models.user import User
+from app.schemas.common import PaginatedResponse
+from app.schemas.doctor import DoctorRegister, DoctorUpdate, DoctorResponse
 from app.services.doctor_services import DoctorService
 
 
-router = APIRouter(
-    prefix="/doctors",
-    tags=["Doctors"],
-)
+router = APIRouter(prefix="/doctors", tags=["Doctors"])
 
 
-# @router.post("/create", response_model=DoctorResponse)
-# def create_doctor(
-#     doctor: DoctorCreate,
-#     db: Session = Depends(get_db),
-#     current_user=Depends(get_current_user),
-# ):
-#     return DoctorService.create_doctor(
-#         database=db,
-#         data=doctor,
-#         created_by=current_user.id,
-#     )
+@router.post("/register", response_model=DoctorResponse, status_code=201)
+def register_doctor(doctor: DoctorRegister, db: Session = Depends(get_db)):
+    return DoctorService.register_doctor(db, doctor)
 
 
-@router.get("", response_model=DoctorListResponse)
-def get_all_doctors(
+@router.get("", response_model=PaginatedResponse[DoctorResponse])
+def list_doctors(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=100),
     search: Optional[str] = None,
     department: Optional[str] = Query(None),
     specialization: Optional[str] = Query(None),
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     return DoctorService.get_all_doctors(
-        database=db,
-        page=page,
-        limit=limit,
-        search=search,
-        department=department,
-        specialization=specialization,
+        database=db, page=page, limit=limit,
+        search=search, department=department, specialization=specialization,
     )
+
+
 @router.get("/pending", response_model=List[DoctorResponse])
-def get_pending_doctors(
+def list_pending_doctors(
     db: Session = Depends(get_db),
-    current_user=Depends(require_admin),
+    current_user: User = Depends(require_admin),
 ):
-    return DoctorService.get_pending_doctors(
-        database=db,
-    )
-@router.patch("/approve/{doctor_id}", response_model=DoctorResponse)
-def approve_doctor(
-    doctor_id: str,
-    db: Session = Depends(get_db),
-    current_user=Depends(require_admin),
-):
-    return DoctorService.approve_doctor(
-        database=db,
-        doctor_id=doctor_id,
-        current_user_id=current_user.id,
-    )
-@router.patch("/reject/{doctor_id}", response_model=DoctorResponse)
-def reject_doctor(
-    doctor_id: str,
-    db: Session = Depends(get_db),
-    current_user=Depends(require_admin),
-):
-    return DoctorService.reject_doctor(
-        database=db,
-        doctor_id=doctor_id,
-    )
+    return DoctorService.get_pending_doctors(db)
+
+
 @router.get("/{doctor_id}", response_model=DoctorResponse)
-def get_doctor_by_id(
+def get_doctor(
     doctor_id: str,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    return DoctorService.get_doctor_by_id(
-        database=db,
-        doctor_id=doctor_id,
-    )
+    return DoctorService.get_doctor_by_id(db, doctor_id)
 
 
-@router.put("/update/{doctor_id}", response_model=DoctorResponse)
+@router.put("/{doctor_id}", response_model=DoctorResponse)
 def update_doctor(
     doctor_id: str,
     doctor: DoctorUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(require_admin),
+    current_user: User = Depends(require_admin),
 ):
-    return DoctorService.update_doctor(
-        database=db,
-        doctor_id=doctor_id,
-        data=doctor,
-    )
+    return DoctorService.update_doctor(db, doctor_id, doctor)
 
 
-@router.delete("/delete/{doctor_id}", response_model=DoctorResponse)
+@router.delete("/{doctor_id}", response_model=DoctorResponse)
 def delete_doctor(
     doctor_id: str,
     db: Session = Depends(get_db),
-    current_user=Depends(require_admin),
+    current_user: User = Depends(require_admin),
 ):
-    return DoctorService.delete_doctor(
-        database=db,
-        doctor_id=doctor_id,
-    )
+    return DoctorService.delete_doctor(db, doctor_id)
 
 
-@router.patch("/restore/{doctor_id}", response_model=DoctorResponse)
+@router.patch("/{doctor_id}/restore", response_model=DoctorResponse)
 def restore_doctor(
     doctor_id: str,
     db: Session = Depends(get_db),
-    current_user=Depends(require_admin),
+    current_user: User = Depends(require_admin),
 ):
-    return DoctorService.restore_doctor(
-        database=db,
-        doctor_id=doctor_id,
-    )
+    return DoctorService.restore_doctor(db, doctor_id)
 
-@router.post("/register", response_model=DoctorResponse)
-def register_doctor(
-    doctor: DoctorRegister,
+
+@router.patch("/{doctor_id}/approve", response_model=DoctorResponse)
+def approve_doctor(
+    doctor_id: str,
     db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
 ):
-    return DoctorService.register_doctor(
-        database=db,
-        doctor=doctor,
-    )
+    return DoctorService.approve_doctor(db, doctor_id, current_user.id)
 
+
+@router.patch("/{doctor_id}/reject", response_model=DoctorResponse)
+def reject_doctor(
+    doctor_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    return DoctorService.reject_doctor(db, doctor_id)
