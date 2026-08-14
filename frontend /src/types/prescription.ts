@@ -3,68 +3,39 @@ export interface Medicine {
   dosage: string;
   frequency: string;
   duration: string;
-  instructions: string;
+  instructions?: string | null;
 }
 
 export interface Prescription {
-  id: number;
-  appointment_id: number;
-  patient_id: number;
-  doctor_id: number;
+  prescription_id: string;               // "PRS00000001"
+  appointment_id: string;                // "APT00000001"
   diagnosis: string;
+  advice?: string | null;
+  follow_up_date?: string | null;
   medicines: Medicine[];
-  advice?: string;
-  follow_up_date?: string;
-  appointment?: AppointmentSummary;
-  patient?: PatientSummary;
-  doctor?: DoctorSummary;
   is_active: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface AppointmentSummary {
-  id: number;
-  appointment_date: string;
-  appointment_time: string;
-  status: string;
-}
-
-export interface PatientSummary {
-  id: number;
-  full_name: string;
-  email: string;
-  phone_number: string;
-}
-
-export interface DoctorSummary {
-  id: number;
-  full_name: string;
-  specialization: string;
-  department: string;
+  created_by: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PrescriptionCreateRequest {
-  appointment_id: number;
-  patient_id: number;
-  doctor_id: number;
+  appointment_id: string;
   diagnosis: string;
-  medicines: Medicine[];
   advice?: string;
   follow_up_date?: string;
+  medicines: Medicine[];
 }
 
 export interface PrescriptionUpdateRequest {
   diagnosis?: string;
-  medicines?: Medicine[];
   advice?: string;
   follow_up_date?: string;
+  medicines?: Medicine[];
 }
 
 export interface PrescriptionFilters {
   search?: string;
-  doctor_id?: number;
-  patient_id?: number;
   page?: number;
   limit?: number;
 }
