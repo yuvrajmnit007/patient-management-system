@@ -5,7 +5,7 @@ import {
   PatientUpdateRequest,
   PatientFilters,
 } from '@/types/patient';
-import { PaginatedResponse } from './doctorService';
+import { PaginatedResponse } from '@/types/common';
 
 export const patientService = {
   create: async (data: PatientCreateRequest): Promise<Patient> => {
@@ -20,22 +20,25 @@ export const patientService = {
     return response.data;
   },
 
-  getById: async (id: number): Promise<Patient> => {
-    const response = await api.get<Patient>(`/patients/${id}`);
+  getById: async (patientId: string): Promise<Patient> => {
+    const response = await api.get<Patient>(`/patients/${patientId}`);
     return response.data;
   },
 
-  update: async (id: number, data: PatientUpdateRequest): Promise<Patient> => {
-    const response = await api.put<Patient>(`/patients/${id}`, data);
+  update: async (
+    patientId: string,
+    data: PatientUpdateRequest,
+  ): Promise<Patient> => {
+    const response = await api.put<Patient>(`/patients/${patientId}`, data);
     return response.data;
   },
 
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/patients/${id}`);
+  delete: async (patientId: string): Promise<void> => {
+    await api.delete(`/patients/${patientId}`);
   },
 
-  restore: async (id: number): Promise<Patient> => {
-    const response = await api.patch<Patient>(`/patients/restore/${id}`);
+  restore: async (patientId: string): Promise<Patient> => {
+    const response = await api.patch<Patient>(`/patients/${patientId}/restore`);
     return response.data;
   },
 };
