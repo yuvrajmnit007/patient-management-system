@@ -1,9 +1,11 @@
-export type UserRole = 'ADMIN' | 'DOCTOR';
+export type UserRole = 'admin' | 'doctor' | 'receptionist';
 
 export interface User {
   id: number;
-  email: string;
+  username: string;
   full_name: string;
+  email: string;
+  phone_number: string;
   role: UserRole;
   is_active: boolean;
 }
