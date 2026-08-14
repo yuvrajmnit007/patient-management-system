@@ -36,6 +36,7 @@ export interface PrescriptionUpdateRequest {
 
 export interface PrescriptionFilters {
   search?: string;
+  doctor_id?: string;
   page?: number;
   limit?: number;
 }
