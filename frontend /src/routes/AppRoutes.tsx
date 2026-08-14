@@ -1,8 +1,12 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+
 import { useAuth } from '@/hooks/useAuth';
+import { UserRole } from '@/types/auth';
+
 import { Layout } from '@/components/layout/Layout';
 import { LoginPage } from '@/pages/LoginPage';
+
 import { AdminDashboard } from '@/pages/admin/AdminDashboard';
 import { DoctorsPage } from '@/pages/admin/DoctorsPage';
 import { PendingDoctorsPage } from '@/pages/admin/PendingDoctorsPage';
@@ -10,114 +14,77 @@ import { PatientsPage } from '@/pages/admin/PatientsPage';
 import { AppointmentsPage } from '@/pages/admin/AppointmentsPage';
 import { PrescriptionsPage } from '@/pages/admin/PrescriptionsPage';
 import { AdminProfilePage } from '@/pages/admin/AdminProfilePage';
+
 import { DoctorDashboard } from '@/pages/doctor/DoctorDashboard';
 import { MyAppointmentsPage } from '@/pages/doctor/MyAppointmentsPage';
 import { MyPrescriptionsPage } from '@/pages/doctor/MyPrescriptionsPage';
 import { DoctorProfilePage } from '@/pages/doctor/DoctorProfilePage';
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-}
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+const FullPageSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+  </div>
+);
+
+
+const ProtectedRoute: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
+  if (isLoading) return <FullPageSpinner />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <Outlet />;
 };
 
-interface RoleProtectedRouteProps extends ProtectedRouteProps {
-  allowedRoles: ('ADMIN' | 'DOCTOR')[];
-}
 
-const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({
-  children,
+const RoleProtectedRoute: React.FC<{ allowedRoles: UserRole[] }> = ({
   allowedRoles,
 }) => {
   const { isAuthenticated, isLoading, user } = useAuth();
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
-      </div>
-    );
-  }
+  if (isLoading) return <FullPageSpinner />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
 
-  if (!isAuthenticated) {
+  if (!user || !allowedRoles.includes(user.role)) {
+    if (user?.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
+    if (user?.role === 'doctor') return <Navigate to="/doctor/dashboard" replace />;
     return <Navigate to="/login" replace />;
   }
-
-  if (!allowedRoles.includes(user!.role)) {
-    // Redirect to appropriate dashboard based on role
-    if (user!.role === 'ADMIN') {
-      return <Navigate to="/admin/dashboard" replace />;
-    }
-    if (user!.role === 'DOCTOR') {
-      return <Navigate to="/doctor/dashboard" replace />;
-    }
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
+  return <Outlet />;
 };
+
 
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
-        {/* Admin Routes */}
-        <Route
-          path="/admin/*"
-          element={
-            <RoleProtectedRoute allowedRoles={['ADMIN']}>
-              <Routes>
-                <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="doctors" element={<DoctorsPage />} />
-                <Route path="pending-doctors" element={<PendingDoctorsPage />} />
-                <Route path="patients" element={<PatientsPage />} />
-                <Route path="appointments" element={<AppointmentsPage />} />
-                <Route path="prescriptions" element={<PrescriptionsPage />} />
-                <Route path="profile" element={<AdminProfilePage />} />
-                <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
-              </Routes>
-            </RoleProtectedRoute>
-          }
-        />
-        {/* Doctor Routes */}
-        <Route
-          path="/doctor/*"
-          element={
-            <RoleProtectedRoute allowedRoles={['DOCTOR']}>
-              <Routes>
-                <Route path="dashboard" element={<DoctorDashboard />} />
-                <Route path="appointments" element={<MyAppointmentsPage />} />
-                <Route path="prescriptions" element={<MyPrescriptionsPage />} />
-                <Route path="profile" element={<DoctorProfilePage />} />
-                <Route path="*" element={<Navigate to="/doctor/dashboard" replace />} />
-              </Routes>
-            </RoleProtectedRoute>
-          }
-        />
+
+      <Route element={<ProtectedRoute />}>
+        <Route element={<Layout />}>
+
+          {/* Admin section */}
+          <Route element={<RoleProtectedRoute allowedRoles={['admin']} />}>
+            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/doctors" element={<DoctorsPage />} />
+            <Route path="/admin/pending-doctors" element={<PendingDoctorsPage />} />
+            <Route path="/admin/patients" element={<PatientsPage />} />
+            <Route path="/admin/appointments" element={<AppointmentsPage />} />
+            <Route path="/admin/prescriptions" element={<PrescriptionsPage />} />
+            <Route path="/admin/profile" element={<AdminProfilePage />} />
+          </Route>
+
+          {/* Doctor section */}
+          <Route element={<RoleProtectedRoute allowedRoles={['doctor']} />}>
+            <Route path="/doctor" element={<Navigate to="/doctor/dashboard" replace />} />
+            <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+            <Route path="/doctor/appointments" element={<MyAppointmentsPage />} />
+            <Route path="/doctor/prescriptions" element={<MyPrescriptionsPage />} />
+            <Route path="/doctor/profile" element={<DoctorProfilePage />} />
+          </Route>
+
+        </Route>
       </Route>
+
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
