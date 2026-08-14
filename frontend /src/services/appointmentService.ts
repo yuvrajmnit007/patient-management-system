@@ -5,7 +5,7 @@ import {
   AppointmentUpdateRequest,
   AppointmentFilters,
 } from '@/types/appointment';
-import { PaginatedResponse } from './doctorService';
+import { PaginatedResponse } from '@/types/common';
 
 export const appointmentService = {
   create: async (data: AppointmentCreateRequest): Promise<Appointment> => {
@@ -13,34 +13,49 @@ export const appointmentService = {
     return response.data;
   },
 
-  getAll: async (filters?: AppointmentFilters): Promise<PaginatedResponse<Appointment>> => {
-    const response = await api.get<PaginatedResponse<Appointment>>('/appointments', {
-      params: filters,
-    });
+  getAll: async (
+    filters?: AppointmentFilters,
+  ): Promise<PaginatedResponse<Appointment>> => {
+    const response = await api.get<PaginatedResponse<Appointment>>(
+      '/appointments',
+      { params: filters },
+    );
     return response.data;
   },
 
-  getById: async (id: number): Promise<Appointment> => {
-    const response = await api.get<Appointment>(`/appointments/${id}`);
+  getById: async (appointmentId: string): Promise<Appointment> => {
+    const response = await api.get<Appointment>(
+      `/appointments/${appointmentId}`,
+    );
     return response.data;
   },
 
-  update: async (id: number, data: AppointmentUpdateRequest): Promise<Appointment> => {
-    const response = await api.put<Appointment>(`/appointments/${id}`, data);
+  update: async (
+    appointmentId: string,
+    data: AppointmentUpdateRequest,
+  ): Promise<Appointment> => {
+    const response = await api.put<Appointment>(
+      `/appointments/${appointmentId}`,
+      data,
+    );
     return response.data;
   },
 
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/appointments/${id}`);
+  delete: async (appointmentId: string): Promise<void> => {
+    await api.delete(`/appointments/${appointmentId}`);
   },
 
-  restore: async (id: number): Promise<Appointment> => {
-    const response = await api.patch<Appointment>(`/appointments/restore/${id}`);
+  restore: async (appointmentId: string): Promise<Appointment> => {
+    const response = await api.patch<Appointment>(
+      `/appointments/${appointmentId}/restore`,
+    );
     return response.data;
   },
 
-  confirm: async (id: number): Promise<Appointment> => {
-    const response = await api.patch<Appointment>(`/appointments/confirm/${id}`);
+  confirm: async (appointmentId: string): Promise<Appointment> => {
+    const response = await api.patch<Appointment>(
+      `/appointments/${appointmentId}/confirm`,
+    );
     return response.data;
   },
 };
