@@ -7,7 +7,6 @@ from app.database.database import get_db
 from app.dependencies.auth import get_current_user, require_admin
 from app.models.doctor import Department, Specialization
 from app.schemas.doctor import (
-    DoctorCreate,
     DoctorRegister,
     DoctorUpdate,
     DoctorResponse,
@@ -22,17 +21,17 @@ router = APIRouter(
 )
 
 
-@router.post("/create", response_model=DoctorResponse)
-def create_doctor(
-    doctor: DoctorCreate,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
-    return DoctorService.create_doctor(
-        database=db,
-        data=doctor,
-        created_by=current_user.id,
-    )
+# @router.post("/create", response_model=DoctorResponse)
+# def create_doctor(
+#     doctor: DoctorCreate,
+#     db: Session = Depends(get_db),
+#     current_user=Depends(get_current_user),
+# ):
+#     return DoctorService.create_doctor(
+#         database=db,
+#         data=doctor,
+#         created_by=current_user.id,
+#     )
 
 
 @router.get("", response_model=DoctorListResponse)
@@ -99,7 +98,7 @@ def update_doctor(
     doctor_id: str,
     doctor: DoctorUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(require_admin),
 ):
     return DoctorService.update_doctor(
         database=db,
@@ -112,7 +111,7 @@ def update_doctor(
 def delete_doctor(
     doctor_id: str,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(require_admin),
 ):
     return DoctorService.delete_doctor(
         database=db,
@@ -124,7 +123,7 @@ def delete_doctor(
 def restore_doctor(
     doctor_id: str,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(require_admin),
 ):
     return DoctorService.restore_doctor(
         database=db,
