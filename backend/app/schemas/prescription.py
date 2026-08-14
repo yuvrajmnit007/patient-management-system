@@ -4,26 +4,14 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
-
-class PrescriptionItemBase(BaseModel):
+class PrescriptionItemCreate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    medicine_name: Optional[str] = None
-    dosage: Optional[str] = None
-    frequency: Optional[str] = None
-    duration: Optional[str] = None
+    medicine_name: str = Field(..., examples=["Paracetamol"])
+    dosage: str = Field(..., examples=["500 mg"])
+    frequency: str = Field(..., examples=["Twice Daily"])
+    duration: str = Field(..., examples=["5 Days"])
     instructions: Optional[str] = None
-
-
-class PrescriptionItemCreate(PrescriptionItemBase):
-    medicine_name: str = Field(..., example="Paracetamol")
-    dosage: str = Field(..., example="500 mg")
-    frequency: str = Field(..., example="Twice Daily")
-    duration: str = Field(..., example="5 Days")
-
-
-class PrescriptionItemUpdate(PrescriptionItemBase):
-    pass
 
 
 class PrescriptionItemResponse(BaseModel):
@@ -33,62 +21,42 @@ class PrescriptionItemResponse(BaseModel):
     dosage: str
     frequency: str
     duration: str
-    instructions: Optional[str]
+    instructions: Optional[str] = None
 
 
-
-class PrescriptionBase(BaseModel):
+class PrescriptionCreate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    appointment_id: Optional[str] = None
+    appointment_id: str = Field(..., examples=["APT00000001"])
+    diagnosis: str = Field(..., min_length=1)
+    advice: Optional[str] = None
+    follow_up_date: Optional[date] = None
+    medicines: list[PrescriptionItemCreate] = Field(..., min_length=1)
+
+
+class PrescriptionUpdate(BaseModel):
+    """
+    Update diagnosis/advice/follow-up. If `medicines` is provided,
+    the entire item list is replaced with the new set (all fields required).
+    """
+    model_config = ConfigDict(from_attributes=True)
+
     diagnosis: Optional[str] = None
     advice: Optional[str] = None
     follow_up_date: Optional[date] = None
-
-
-class PrescriptionCreate(PrescriptionBase):
-    appointment_id: str = Field(..., example="APT00000001")
-    diagnosis: str = Field(..., example="Viral Fever")
-    advice: Optional[str] = Field(
-        None,
-        example="Drink plenty of water"
-    )
-    follow_up_date: Optional[date] = Field(
-        None,
-        example="2026-08-10"
-    )
-
-    medicines: list[PrescriptionItemCreate]
-
-
-class PrescriptionUpdate(PrescriptionBase):
-    medicines: Optional[list[PrescriptionItemUpdate]] = None
+    medicines: Optional[list[PrescriptionItemCreate]] = None
 
 
 class PrescriptionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     prescription_id: str
-
     appointment_id: str
-
     diagnosis: str
-    advice: Optional[str]
-    follow_up_date: Optional[date]
-
+    advice: Optional[str] = None
+    follow_up_date: Optional[date] = None
     medicines: list[PrescriptionItemResponse]
-
     is_active: bool
-
     created_by: int
-
     created_at: datetime
     updated_at: datetime
-
-
-class PrescriptionListResponse(BaseModel):
-    page: int
-    limit: int
-    total: int
-
-    prescriptions: list[PrescriptionResponse]
