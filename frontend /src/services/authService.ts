@@ -12,4 +12,3 @@ export const authService = {
     return response.data;
   },
 };
-  
