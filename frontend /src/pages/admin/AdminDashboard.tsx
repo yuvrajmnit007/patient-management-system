@@ -1,8 +1,8 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Users, Stethoscope, UserCheck, CalendarDays } from 'lucide-react';
+
 import { PageHeader } from '@/components/common/PageHeader';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorState } from '@/components/common/ErrorState';
 import { patientService } from '@/services/patientService';
 import { doctorService } from '@/services/doctorService';
@@ -11,14 +11,17 @@ import { appointmentService } from '@/services/appointmentService';
 const StatCard: React.FC<{
   title: string;
   value: number | string;
+  loading?: boolean;
   icon: React.ReactNode;
   color: string;
-}> = ({ title, value, icon, color }) => (
+}> = ({ title, value, loading, icon, color }) => (
   <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
     <div className="flex items-center justify-between">
       <div>
         <p className="text-sm font-medium text-gray-500">{title}</p>
-        <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+        <p className="text-2xl font-bold text-gray-900 mt-1">
+          {loading ? '…' : value}
+        </p>
       </div>
       <div className={`p-3 rounded-lg ${color}`}>{icon}</div>
     </div>
@@ -26,36 +29,35 @@ const StatCard: React.FC<{
 );
 
 export const AdminDashboard: React.FC = () => {
-  const { data: patients, isLoading: pLoading, isError: pError } = useQuery({
+  const today = new Date().toISOString().split('T')[0];
+
+  const patients = useQuery({
     queryKey: ['patients', 'count'],
     queryFn: () => patientService.getAll({ limit: 1 }),
   });
-
-  const { data: doctors, isLoading: dLoading, isError: dError } = useQuery({
+  const doctors = useQuery({
     queryKey: ['doctors', 'count'],
     queryFn: () => doctorService.getAll({ limit: 1 }),
   });
-
-  const { data: pendingDoctors, isLoading: pdLoading } = useQuery({
+  const pending = useQuery({
     queryKey: ['doctors', 'pending'],
     queryFn: () => doctorService.getPending(),
   });
-
-  const { data: appointments, isLoading: aLoading, isError: aError } = useQuery({
-    queryKey: ['appointments', 'today'],
-    queryFn: () => appointmentService.getAll({ limit: 100 }),
+  const appointmentsToday = useQuery({
+    queryKey: ['appointments', 'today', today],
+    queryFn: () =>
+      appointmentService.getAll({ limit: 1, appointment_date: today }),
   });
 
-  const isLoading = pLoading || dLoading || pdLoading || aLoading;
-  const isError = pError || dError || aError;
+  const anyError =
+    patients.isError ||
+    doctors.isError ||
+    pending.isError ||
+    appointmentsToday.isError;
 
-  if (isLoading) return <LoadingSpinner />;
-  if (isError) return <ErrorState onRetry={() => window.location.reload()} />;
-
-  const today = new Date().toISOString().split('T')[0];
-  const todayAppointments = appointments?.items.filter(
-    (a) => a.appointment_date === today
-  ).length ?? 0;
+  if (anyError) {
+    return <ErrorState onRetry={() => window.location.reload()} />;
+  }
 
   return (
     <div>
@@ -63,25 +65,29 @@ export const AdminDashboard: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Patients"
-          value={patients?.total ?? 0}
+          value={patients.data?.total ?? 0}
+          loading={patients.isLoading}
           icon={<Users size={20} className="text-blue-600" />}
           color="bg-blue-50"
         />
         <StatCard
           title="Total Doctors"
-          value={doctors?.total ?? 0}
+          value={doctors.data?.total ?? 0}
+          loading={doctors.isLoading}
           icon={<Stethoscope size={20} className="text-primary-600" />}
           color="bg-primary-50"
         />
         <StatCard
           title="Pending Doctors"
-          value={pendingDoctors?.length ?? 0}
+          value={pending.data?.length ?? 0}
+          loading={pending.isLoading}
           icon={<UserCheck size={20} className="text-yellow-600" />}
           color="bg-yellow-50"
         />
         <StatCard
           title="Today's Appointments"
-          value={todayAppointments}
+          value={appointmentsToday.data?.total ?? 0}
+          loading={appointmentsToday.isLoading}
           icon={<CalendarDays size={20} className="text-purple-600" />}
           color="bg-purple-50"
         />
