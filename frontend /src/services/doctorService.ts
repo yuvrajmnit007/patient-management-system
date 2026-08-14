@@ -5,14 +5,7 @@ import {
   DoctorUpdateRequest,
   DoctorFilters,
 } from '@/types/doctor';
-
-export interface PaginatedResponse<T> {
-  items: T[];
-  total: number;
-  page: number;
-  limit: number;
-  total_pages: number;
-}
+import { PaginatedResponse } from '@/types/common';
 
 export const doctorService = {
   register: async (data: DoctorRegistrationRequest): Promise<Doctor> => {
@@ -27,37 +20,40 @@ export const doctorService = {
     return response.data;
   },
 
-  getById: async (id: number): Promise<Doctor> => {
-    const response = await api.get<Doctor>(`/doctors/${id}`);
-    return response.data;
-  },
-
-  update: async (id: number, data: DoctorUpdateRequest): Promise<Doctor> => {
-    const response = await api.put<Doctor>(`/doctors/${id}`, data);
-    return response.data;
-  },
-
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/doctors/${id}`);
-  },
-
-  restore: async (id: number): Promise<Doctor> => {
-    const response = await api.patch<Doctor>(`/doctors/restore/${id}`);
-    return response.data;
-  },
-
   getPending: async (): Promise<Doctor[]> => {
     const response = await api.get<Doctor[]>('/doctors/pending');
     return response.data;
   },
 
-  approve: async (id: number): Promise<Doctor> => {
-    const response = await api.patch<Doctor>(`/doctors/approve/${id}`);
+  getById: async (doctorId: string): Promise<Doctor> => {
+    const response = await api.get<Doctor>(`/doctors/${doctorId}`);
     return response.data;
   },
 
-  reject: async (id: number): Promise<Doctor> => {
-    const response = await api.patch<Doctor>(`/doctors/reject/${id}`);
+  update: async (
+    doctorId: string,
+    data: DoctorUpdateRequest,
+  ): Promise<Doctor> => {
+    const response = await api.put<Doctor>(`/doctors/${doctorId}`, data);
+    return response.data;
+  },
+
+  delete: async (doctorId: string): Promise<void> => {
+    await api.delete(`/doctors/${doctorId}`);
+  },
+
+  restore: async (doctorId: string): Promise<Doctor> => {
+    const response = await api.patch<Doctor>(`/doctors/${doctorId}/restore`);
+    return response.data;
+  },
+
+  approve: async (doctorId: string): Promise<Doctor> => {
+    const response = await api.patch<Doctor>(`/doctors/${doctorId}/approve`);
+    return response.data;
+  },
+
+  reject: async (doctorId: string): Promise<Doctor> => {
+    const response = await api.patch<Doctor>(`/doctors/${doctorId}/reject`);
     return response.data;
   },
 };
