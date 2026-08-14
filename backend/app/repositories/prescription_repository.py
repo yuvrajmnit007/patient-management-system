@@ -78,6 +78,7 @@ class PrescriptionRepository:
         page: int,
         limit: int,
         search: str | None = None,
+        doctor_pk: int | None = None,
     ) -> tuple[list[Prescription], int]:
         query = (
             database.query(Prescription)
@@ -87,6 +88,10 @@ class PrescriptionRepository:
             )
             .filter(Prescription.is_active == True)
         )
+
+        if doctor_pk is not None:
+            query = query.join(Appointment, Prescription.appointment_id == Appointment.id)\
+                        .filter(Appointment.doctor_id == doctor_pk)
 
         if search:
             pattern = f"%{search}%"

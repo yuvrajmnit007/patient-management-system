@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-from app.dependencies.auth import get_current_user, require_admin
+from app.dependencies.auth import get_current_user, require_admin, require_doctor
 from app.models.user import User
 from app.schemas.common import PaginatedResponse
 from app.schemas.doctor import DoctorRegister, DoctorUpdate, DoctorResponse
@@ -96,3 +96,10 @@ def reject_doctor(
     current_user: User = Depends(require_admin),
 ):
     return DoctorService.reject_doctor(db, doctor_id)
+
+@router.get("/me", response_model=DoctorResponse)
+def get_current_doctor(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_doctor),
+):
+    return DoctorService.get_current_doctor(db, current_user.id)

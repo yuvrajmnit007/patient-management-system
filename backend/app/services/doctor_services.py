@@ -235,3 +235,14 @@ class DoctorService:
         database.commit()
         database.refresh(doctor)
         return doctor
+
+@staticmethod
+def get_current_doctor(database: Session, current_user_id: int) -> Doctor:
+    doctor = DoctorRepository.get_by_user_id(database, current_user_id)
+    if not doctor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No doctor profile linked to this account",
+        )
+    return doctor
+
