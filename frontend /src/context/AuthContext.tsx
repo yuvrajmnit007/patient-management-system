@@ -1,8 +1,16 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
+import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import toast from 'react-hot-toast';
+
 import { User, UserRole, AuthState } from '@/types/auth';
 import { authService } from '@/services/authService';
-import toast from 'react-hot-toast';
+import { getErrorMessage } from '@/api/error';
 
 interface JwtPayload {
   sub: string;
@@ -11,15 +19,19 @@ interface JwtPayload {
   iat: number;
 }
 
-interface AuthContextType extends AuthState {
+export interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   hasRole: (role: UserRole) => boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const navigate = useNavigate();
   const [state, setState] = useState<AuthState>({
     user: null,
     token: null,
@@ -36,8 +48,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAuthenticated: false,
       isLoading: false,
     });
-    window.location.href = '/login';
-  }, []);
+    navigate('/login', { replace: true });
+  }, [navigate]);
 
   const initAuth = useCallback(async () => {
     const token = localStorage.getItem('hms_token');
@@ -49,32 +61,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      // Check token expiration
       const decoded = jwtDecode<JwtPayload>(token);
       if (decoded.exp * 1000 < Date.now()) {
         logout();
         return;
       }
 
-      if (storedUser) {
-        const user = JSON.parse(storedUser) as User;
-        setState({
-          user,
-          token,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-      } else {
-        // Fetch current user if not in localStorage
-        const user = await authService.getCurrentUser();
+      const user = storedUser
+        ? (JSON.parse(storedUser) as User)
+        : await authService.getCurrentUser();
+
+      if (!storedUser) {
         localStorage.setItem('hms_user', JSON.stringify(user));
-        setState({
-          user,
-          token,
-          isAuthenticated: true,
-          isLoading: false,
-        });
       }
+
+      setState({
+        user,
+        token,
+        isAuthenticated: true,
+        isLoading: false,
+      });
     } catch {
       logout();
     }
@@ -86,13 +92,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await authService.login({ email, password });
-      const { access_token } = response;
+      const { access_token } = await authService.login({ email, password });
       localStorage.setItem('hms_token', access_token);
 
-      const decoded = jwtDecode<JwtPayload>(access_token);
-
-      // Fetch full user data
       const user = await authService.getCurrentUser();
       localStorage.setItem('hms_user', JSON.stringify(user));
 
@@ -105,33 +107,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       toast.success('Login successful');
 
-      // Redirect based on role
-      if (user.role === 'ADMIN') {
-        window.location.href = '/admin/dashboard';
-      } else if (user.role === 'DOCTOR') {
-        window.location.href = '/doctor/dashboard';
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard', { replace: true });
+      } else if (user.role === 'doctor') {
+        navigate('/doctor/dashboard', { replace: true });
+      } else {
+        navigate('/', { replace: true });
       }
     } catch (error) {
-      toast.error('Invalid email or password');
+      toast.error(getErrorMessage(error));
       throw error;
     }
   };
 
-  const hasRole = (role: UserRole): boolean => {
-    return state.user?.role === role;
-  };
+  const hasRole = (role: UserRole): boolean => state.user?.role === role;
 
   return (
     <AuthContext.Provider value={{ ...state, login, logout, hasRole }}>
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };
