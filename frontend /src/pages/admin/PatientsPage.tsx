@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
+
 import { PageHeader } from '@/components/common/PageHeader';
 import { DataTable } from '@/components/common/DataTable';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
@@ -13,8 +14,8 @@ export const PatientsPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [restoreId, setRestoreId] = useState<number | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [restoreId, setRestoreId] = useState<string | null>(null);
   const limit = 10;
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -43,7 +44,7 @@ export const PatientsPage: React.FC = () => {
   });
 
   const columns = [
-    { key: 'id', header: 'ID' },
+    { key: 'patient_id', header: 'ID' },
     { key: 'full_name', header: 'Name' },
     { key: 'email', header: 'Email' },
     { key: 'phone_number', header: 'Phone' },
@@ -58,11 +59,17 @@ export const PatientsPage: React.FC = () => {
             <Pencil size={16} />
           </button>
           {item.is_active ? (
-            <button onClick={() => setDeleteId(item.id)} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+            <button
+              onClick={() => setDeleteId(item.patient_id)}
+              className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
               <Trash2 size={16} />
             </button>
           ) : (
-            <button onClick={() => setRestoreId(item.id)} className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+            <button
+              onClick={() => setRestoreId(item.patient_id)}
+              className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+            >
               <RotateCcw size={16} />
             </button>
           )}
@@ -73,21 +80,44 @@ export const PatientsPage: React.FC = () => {
 
   return (
     <div>
-      <PageHeader title="Patients" description="Manage hospital patients" action={
-        <button className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors">
-          <Plus size={18} /> Add Patient
-        </button>
-      } />
-      <DataTable columns={columns} data={data?.items ?? []} isLoading={isLoading} isError={isError} onRetry={refetch}
-        searchPlaceholder="Search patients..." onSearch={setSearch}
+      <PageHeader
+        title="Patients"
+        description="Manage hospital patients"
+        action={
+          <button className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors">
+            <Plus size={18} /> Add Patient
+          </button>
+        }
+      />
+      <DataTable
+        columns={columns}
+        data={data?.items ?? []}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={refetch}
+        searchPlaceholder="Search patients..."
+        onSearch={setSearch}
         pagination={{ page, limit, total: data?.total ?? 0, onPageChange: setPage }}
-        keyExtractor={(item) => item.id} />
-      <ConfirmDialog isOpen={!!deleteId} title="Delete Patient" message="Are you sure you want to delete this patient?"
-        confirmText="Delete" confirmVariant="danger"
-        onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
-      <ConfirmDialog isOpen={!!restoreId} title="Restore Patient" message="Are you sure you want to restore this patient?"
-        confirmText="Restore" confirmVariant="primary"
-        onConfirm={() => restoreId && restoreMutation.mutate(restoreId)} onCancel={() => setRestoreId(null)} />
+        keyExtractor={(item) => item.patient_id}
+      />
+      <ConfirmDialog
+        isOpen={!!deleteId}
+        title="Delete Patient"
+        message="Are you sure you want to delete this patient?"
+        confirmText="Delete"
+        confirmVariant="danger"
+        onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
+        onCancel={() => setDeleteId(null)}
+      />
+      <ConfirmDialog
+        isOpen={!!restoreId}
+        title="Restore Patient"
+        message="Are you sure you want to restore this patient?"
+        confirmText="Restore"
+        confirmVariant="primary"
+        onConfirm={() => restoreId && restoreMutation.mutate(restoreId)}
+        onCancel={() => setRestoreId(null)}
+      />
     </div>
   );
 };
